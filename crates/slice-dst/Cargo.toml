@@ -19,10 +19,15 @@ maintenance = { status = "passively-maintained" }
 
 [features]
 default = ["erasable"]
+zeroed = ["bytemuck"]
 
 [dependencies.erasable]
 version = "1.1.0"
 path = "../erasable"
+optional = true
+
+[dependencies.bytemuck]
+version = "1"
 optional = true
 
 [build-dependencies]

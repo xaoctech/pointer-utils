@@ -151,6 +151,25 @@ impl<Header, Item> SliceWithHeader<Header, Item> {
             })
         }
     }
+
+    #[cfg(feature = "zeroed")]
+    /// Create a new zeroed slice/header DST, in a [`AllocSliceDst`] container.
+    pub fn zeroed<A>(header: Header, len: usize) -> A
+        where
+            A: AllocSliceDst<Self>,
+            Item: bytemuck::Zeroable,
+    {
+        let (layout, [length_offset, header_offset, slice_offset]) = Self::layout(len);
+        unsafe {
+            A::new_slice_dst(len, |ptr| {
+                let raw = ptr.as_ptr().cast::<u8>();
+                ptr::write(raw.add(length_offset).cast(), len);
+                ptr::write(raw.add(header_offset).cast(), header);
+                ptr::write_bytes(raw.add(slice_offset).cast::<Item>(), 0u8, len);
+                debug_assert_eq!(Layout::for_value(ptr.as_ref()), layout);
+            })
+        }
+    }
 }
 
 impl<Header, Item> Clone for Box<SliceWithHeader<Header, Item>>
